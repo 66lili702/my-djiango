@@ -1,0 +1,119 @@
+{% extends 'main_app/base.html' %}
+
+
+{% block title %}房屋列表 - 房地产数据分析系统{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">链家房屋数据</h1>
+
+            <!-- 搜索和过滤区域 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchInput" placeholder="搜索房屋..." value="{{ search_query }}">
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="districtFilter">
+                                <option value="">所有区域</option>
+                                {% for district in districts %}
+                                    <option value="{{ district }}" {% if district_filter == district %}selected{% endif %}>{{ district }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="layoutFilter">
+                                <option value="">所有户型</option>
+                                {% for layout in layouts %}
+                                    <option value="{{ layout }}" {% if layout_filter == layout %}selected{% endif %}>{{ layout }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" onclick="filterHouses()">筛选</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 房屋数据展示 -->
+            <div class="row" id="houseList">
+                {% for house in houses %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card house-card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ house.title }}</h5>
+                            <span class="badge bg-primary mb-2">{{ house.district }}</span>
+
+                            <div class="house-info">
+                                <p class="mb-1"><strong>户型:</strong> {{ house.layout }}</p>
+                                <p class="mb-1"><strong>面积:</strong> {{ house.area }} 平米</p>
+                                <p class="mb-1"><strong>总价:</strong> <span class="text-danger fw-bold">{{ house.total_price }} 万</span></p>
+                                <p class="mb-1"><strong>单价:</strong> {{ house.unit_price }} 元/平米</p>
+                                <p class="mb-0 text-muted"><small>更新时间: {{ house.crawl_time|date:"Y-m-d H:i" }}</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">暂无房屋数据</div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- 分页 -->
+            {% if houses.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if houses.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ houses.previous_page_number }}&search={{ search_query }}&district={{ district_filter }}&layout={{ layout_filter }}">上一页</a></li>
+                    {% endif %}
+
+                    {% for i in houses.paginator.page_range %}
+                        {% if houses.number == i %}
+                            <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ i }}&search={{ search_query }}&district={{ district_filter }}&layout={{ layout_filter }}">{{ i }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if houses.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ houses.next_page_number }}&search={{ search_query }}&district={{ district_filter }}&layout={{ layout_filter }}">下一页</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterHouses() {
+    const searchText = document.getElementById('searchInput').value.toLowerCase();
+    const district = document.getElementById('districtFilter').value;
+    const layout = document.getElementById('layoutFilter').value;
+
+    // 构建查询参数
+    const params = new URLSearchParams();
+    if (searchText) params.append('search', searchText);
+    if (district) params.append('district', district);
+    if (layout) params.append('layout', layout);
+
+    // 重定向到带参数的URL - 使用硬编码
+    window.location.href = '/houses/?' + params.toString();  // 改为硬编码
+}
+
+// 回车搜索
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        filterHouses();
+    }
+});
+</script>
+{% endblock %}

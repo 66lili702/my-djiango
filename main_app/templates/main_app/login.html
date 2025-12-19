@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>链家二手房可视化系统 - 登录注册</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .form-container {
+            transition: all 0.3s ease;
+        }
+        .active-form {
+            opacity: 1;
+            transform: translateX(0);
+            display: block;
+        }
+        .inactive-form {
+            opacity: 0;
+            transform: translateX(100%);
+            display: none;
+        }
+        .gradient-bg {
+            /* 二手房背景图片 + 渐变遮罩，保证文字可读性 */
+            background: linear-gradient(rgba(102, 126, 234, 0.85), rgba(118, 75, 162, 0.85)),
+                        url('https://picsum.photos/id/1076/1920/1080') center/cover no-repeat fixed;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden card-hover">
+        <div class="p-8">
+            <!-- 标题区域 -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-home text-blue-500 mr-2"></i>
+                    链家二手房可视化系统
+                </h1>
+                <p class="text-gray-600">专业二手房数据分析与可视化平台</p >
+            </div>
+
+            <!-- 切换按钮 -->
+            <div class="flex mb-6 bg-gray-100 rounded-lg p-1">
+                <button id="loginTab" class="flex-1 py-2 px-4 rounded-md font-medium transition-all duration-300 bg-white text-blue-600 shadow-sm">
+                    登录
+                </button>
+                <button id="registerTab" class="flex-1 py-2 px-4 rounded-md font-medium transition-all duration-300 text-gray-600 hover:text-blue-600">
+                    注册
+                </button>
+            </div>
+
+            <!-- 登录表单 -->
+            <form id="loginForm" class="form-container active-form space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2"></i>用户名
+                    </label>
+                    <input type="text" id="loginUsername" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        placeholder="请输入用户名">
+                    <div id="loginUsernameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2"></i>密码
+                    </label>
+                    <input type="password" id="loginPassword" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        placeholder="请输入密码">
+                    <div id="loginPasswordError" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-600">记住我</span>
+                    </label>
+                    <a href=" " class="text-sm text-blue-600 hover:text-blue-500">忘记密码？</a >
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-sign-in-alt mr-2"></i>登录
+                </button>
+            </form>
+
+            <!-- 注册表单 -->
+            <form id="registerForm" class="form-container inactive-form space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2"></i>用户名
+                    </label>
+                    <input type="text" id="registerUsername" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        placeholder="请输入用户名">
+                    <div id="registerUsernameError" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-envelope mr-2"></i>邮箱
+                    </label>
+                    <input type="email" id="registerEmail" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        placeholder="请输入邮箱">
+                    <div id="registerEmailError" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2"></i>密码
+                    </label>
+                    <input type="password" id="registerPassword" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        placeholder="请输入密码（至少8位）">
+                    <div id="registerPasswordError" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2"></i>确认密码
+                    </label>
+                    <input type="password" id="registerConfirmPassword" required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                        placeholder="请再次输入密码">
+                    <div id="registerConfirmPasswordError" class="text-red-500 text-sm mt-1 hidden"></div>
+                </div>
+
+                <div class="flex items-center">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="registerAgree" required class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-600">同意用户协议和隐私政策</span>
+                    </label>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-user-plus mr-2"></i>注册
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 表单切换逻辑
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        // 切换到登录表单
+        loginTab.addEventListener('click', () => {
+            loginForm.classList.remove('inactive-form');
+            loginForm.classList.add('active-form');
+            registerForm.classList.remove('active-form');
+            registerForm.classList.add('inactive-form');
+
+            // 按钮样式切换
+            loginTab.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+            loginTab.classList.remove('text-gray-600');
+            registerTab.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+            registerTab.classList.add('text-gray-600');
+        });
+
+        // 切换到注册表单
+        registerTab.addEventListener('click', () => {
+            registerForm.classList.remove('inactive-form');
+            registerForm.classList.add('active-form');
+            loginForm.classList.remove('active-form');
+            loginForm.classList.add('inactive-form');
+
+            // 按钮样式切换
+            registerTab.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+            registerTab.classList.remove('text-gray-600');
+            loginTab.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+            loginTab.classList.add('text-gray-600');
+        });
+
+        // 简单的表单验证示例
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止默认提交
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            // 简单验证
+            let isValid = true;
+            if (!username) {
+                document.getElementById('loginUsernameError').textContent = '请输入用户名';
+                document.getElementById('loginUsernameError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('loginUsernameError').classList.add('hidden');
+            }
+
+            if (!password || password.length < 6) {
+                document.getElementById('loginPasswordError').textContent = '请输入至少6位的密码';
+                document.getElementById('loginPasswordError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('loginPasswordError').classList.add('hidden');
+            }
+
+            if (isValid) {
+                alert('登录成功！');
+                // 这里可以添加跳转到系统主页的逻辑
+            }
+        });
+
+        // 注册表单验证
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止默认提交
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPwd = document.getElementById('registerConfirmPassword').value;
+            const agree = document.getElementById('registerAgree').checked;
+
+            let isValid = true;
+
+            // 用户名验证
+            if (!username || username.length < 3) {
+                document.getElementById('registerUsernameError').textContent = '用户名至少3个字符';
+                document.getElementById('registerUsernameError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('registerUsernameError').classList.add('hidden');
+            }
+
+            // 邮箱验证
+            const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailReg.test(email)) {
+                document.getElementById('registerEmailError').textContent = '请输入有效的邮箱地址';
+                document.getElementById('registerEmailError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('registerEmailError').classList.add('hidden');
+            }
+
+            // 密码验证
+            if (!password || password.length < 8) {
+                document.getElementById('registerPasswordError').textContent = '密码至少8个字符';
+                document.getElementById('registerPasswordError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('registerPasswordError').classList.add('hidden');
+            }
+
+            // 确认密码验证
+            if (password !== confirmPwd) {
+                document.getElementById('registerConfirmPasswordError').textContent = '两次输入的密码不一致';
+                document.getElementById('registerConfirmPasswordError').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('registerConfirmPasswordError').classList.add('hidden');
+            }
+
+            // 协议同意验证
+            if (!agree) {
+                alert('请同意用户协议和隐私政策');
+                isValid = false;
+            }
+
+            if (isValid) {
+                alert('注册成功！请登录');
+                // 切换回登录表单
+                loginTab.click();
+                // 填充用户名到登录表单
+                document.getElementById('loginUsername').value = username;
+            }
+        });
+    </script>
+</body>
+</html>

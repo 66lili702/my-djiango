@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>链家二手房可视化系统 - 注册</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(rgba(102, 126, 234, 0.85), rgba(118, 75, 162, 0.85));
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .error-list {
+            color: #ff4757;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            padding-left: 15px;
+        }
+        .password-help {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden card-hover">
+        <div class="p-8">
+            <!-- 标题区域 -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">
+                    <i class="fas fa-home text-blue-500 mr-2"></i>
+                    创建新账户
+                </h1>
+                <p class="text-gray-600">加入房地产数据分析系统</p>
+            </div>
+
+            <!-- 注册表单 -->
+            <form method="POST" action="{% url 'main_app:register' %}">
+                {% csrf_token %}
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-2"></i>用户名
+                        </label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="error-list">
+                            {{ form.username.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-envelope mr-2"></i>邮箱
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="error-list">
+                            {{ form.email.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock mr-2"></i>密码
+                        </label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="error-list">
+                            {{ form.password1.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="password-help">
+                            至少8个字符，不能全为数字
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock mr-2"></i>确认密码
+                        </label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="error-list">
+                            {{ form.password2.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-user-plus mr-2"></i>注册
+                    </button>
+
+                    <div class="text-center mt-4">
+                        <p class="text-sm text-gray-600">
+                            已有账户？
+                            <a href="{% url 'main_app:login' %}" class="text-blue-600 hover:text-blue-500 font-medium">立即登录</a>
+                        </p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

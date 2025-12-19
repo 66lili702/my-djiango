@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>链家房源动态可视化大屏</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #0f1c3c 0%, #1a3569 100%);
+            color: white;
+            font-family: 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 1em;
+            opacity: 0.8;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        .chart-card {
+            background: rgba(26, 53, 105, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .chart-card h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            color: #64ffda;
+            text-align: center;
+        }
+        .chart-container {
+            height: 350px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏠 链家房源动态可视化大屏</h1>
+        <p>实时数据 · 动态更新 · 专业分析</p>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ total_houses }}</div>
+            <div class="stat-label">总房源数量</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ avg_unit_price }}</div>
+            <div class="stat-label">平均单价(元/平)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ city_count }}</div>
+            <div class="stat-label">覆盖城市</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ avg_area }}</div>
+            <div class="stat-label">平均面积(㎡)</div>
+        </div>
+    </div>
+
+    <!-- 图表区域 -->
+    <div class="dashboard">
+        <!-- 城市分布 -->
+        <div class="chart-card">
+            <h3>🌆 各城市房源数量分布</h3>
+            <div id="cityChart" class="chart-container"></div>
+        </div>
+
+        <!-- 价格分布 -->
+        <div class="chart-card">
+            <h3>💰 价格区间分布</h3>
+            <div id="priceChart" class="chart-container"></div>
+        </div>
+
+        <!-- 户型分布 -->
+        <div class="chart-card">
+            <h3>🏡 户型分布统计</h3>
+            <div id="layoutChart" class="chart-container"></div>
+        </div>
+
+        <!-- 面积分布 -->
+        <div class="chart-card">
+            <h3>📐 面积分布情况</h3>
+            <div id="areaChart" class="chart-container"></div>
+        </div>
+
+        <!-- 城市平均价格 -->
+        <div class="chart-card">
+            <h3>📊 各城市平均单价对比</h3>
+            <div id="avgPriceChart" class="chart-container"></div>
+        </div>
+
+        <!-- 价格面积散点图 -->
+        <div class="chart-card">
+            <h3>🔍 价格vs面积关系</h3>
+            <div id="scatterChart" class="chart-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // 从Django模板获取数据
+        const cityStats = {{ city_stats_json|safe }};
+        const priceRanges = {{ price_ranges_json|safe }};
+        const layoutStats = {{ layout_stats_json|safe }};
+        const areaRanges = {{ area_ranges_json|safe }};
+        const scatterData = {{ scatter_data_json|safe }};
+
+        // 初始化所有图表
+        const cityChart = echarts.init(document.getElementById('cityChart'));
+        const priceChart = echarts.init(document.getElementById('priceChart'));
+        const layoutChart = echarts.init(document.getElementById('layoutChart'));
+        const areaChart = echarts.init(document.getElementById('areaChart'));
+        const avgPriceChart = echarts.init(document.getElementById('avgPriceChart'));
+        const scatterChart = echarts.init(document.getElementById('scatterChart'));
+
+        // 1. 城市房源数量柱状图
+        cityChart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' }
+            },
+            xAxis: {
+                type: 'category',
+                data: cityStats.map(item => item.city),
+                axisLabel: {
+                    color: '#fff',
+                    rotate: 45,
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: { color: '#fff' }
+            },
+            series: [{
+                data: cityStats.map(item => item.count),
+                type: 'bar',
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#83bff6' },
+                        { offset: 1, color: '#188df0' }
+                    ])
+                }
+            }]
+        });
+
+        // 2. 价格分布饼图
+        priceChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'vertical',
+                left: 'left',
+                textStyle: { color: '#fff' }
+            },
+            series: [{
+                name: '价格分布',
+                type: 'pie',
+                radius: '70%',
+                data: priceRanges.map(range => ({
+                    name: range.name,
+                    value: range.count
+                })),
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                },
+                label: {
+                    color: '#fff'
+                }
+            }]
+        });
+
+        // 3. 户型分布条形图
+        layoutChart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' }
+            },
+            xAxis: {
+                type: 'value',
+                axisLabel: { color: '#fff' }
+            },
+            yAxis: {
+                type: 'category',
+                data: layoutStats.map(item => item.layout || '未知'),
+                axisLabel: {
+                    color: '#fff',
+                    fontSize: 12
+                }
+            },
+            series: [{
+                data: layoutStats.map(item => item.count),
+                type: 'bar',
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+                        { offset: 0, color: '#ff9f7f' },
+                        { offset: 1, color: '#ff6b6b' }
+                    ])
+                }
+            }]
+        });
+
+        // 4. 面积分布折线图
+        areaChart.setOption({
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: areaRanges.map(r => r.name),
+                axisLabel: { color: '#fff' }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: { color: '#fff' }
+            },
+            series: [{
+                data: areaRanges.map(r => r.count),
+                type: 'line',
+                smooth: true,
+                lineStyle: {
+                    color: '#64ffda',
+                    width: 3
+                },
+                itemStyle: {
+                    color: '#64ffda'
+                },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(100, 255, 218, 0.6)' },
+                        { offset: 1, color: 'rgba(100, 255, 218, 0.1)' }
+                    ])
+                }
+            }]
+        });
+
+        // 5. 城市平均单价柱状图
+        avgPriceChart.setOption({
+            tooltip: {
+                trigger: 'axis',
+                formatter: function(params) {
+                    return `${params[0].name}<br/>平均单价: ${params[0].value.toLocaleString()} 元/平`;
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: cityStats.map(item => item.city),
+                axisLabel: {
+                    color: '#fff',
+                    rotate: 45,
+                    fontSize: 12
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    color: '#fff',
+                    formatter: '{value} 元'
+                }
+            },
+            series: [{
+                data: cityStats.map(item => Math.round(item.avg_price || 0)),
+                type: 'bar',
+                itemStyle: {
+                    color: function(params) {
+                        const colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de'];
+                        return colors[params.dataIndex % colors.length];
+                    }
+                }
+            }]
+        });
+
+        // 6. 散点图
+        scatterChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                formatter: function(params) {
+                    return `城市: ${params.data.city}<br/>面积: ${params.data.area}㎡<br/>单价: ${params.data.unit_price.toLocaleString()}元/平`;
+                }
+            },
+            xAxis: {
+                type: 'value',
+                name: '面积(㎡)',
+                nameTextStyle: { color: '#fff' },
+                axisLabel: { color: '#fff' }
+            },
+            yAxis: {
+                type: 'value',
+                name: '单价(元/平)',
+                nameTextStyle: { color: '#fff' },
+                axisLabel: { color: '#fff' }
+            },
+            series: [{
+                data: scatterData,
+                type: 'scatter',
+                symbolSize: function(data) {
+                    return Math.sqrt(data.unit_price) / 50;
+                },
+                itemStyle: {
+                    color: function(params) {
+                        const price = params.data.unit_price;
+                        if (price < 20000) return '#91cc75';
+                        if (price < 50000) return '#fac858';
+                        if (price < 100000) return '#ee6666';
+                        return '#73c0de';
+                    }
+                }
+            }]
+        });
+
+        // 窗口调整时重绘所有图表
+        window.addEventListener('resize', function() {
+            cityChart.resize();
+            priceChart.resize();
+            layoutChart.resize();
+            areaChart.resize();
+            avgPriceChart.resize();
+            scatterChart.resize();
+        });
+
+        // 定时刷新数据（可选）
+        // setInterval(() => {
+        //     location.reload();
+        // }, 30000); // 30秒刷新一次
+    </script>
+</body>
+</html>

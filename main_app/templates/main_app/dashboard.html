@@ -1,0 +1,256 @@
+{% extends 'main_app/base.html' %}
+{% load static %}  <!-- 这行必须有 -->
+
+{% block title %}数据大屏 - 房地产数据分析系统{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>数据大屏</h1>
+
+<!--    &lt;!&ndash; 调试信息区域（正常显示后可删除） &ndash;&gt;-->
+<!--    <div class="alert alert-info alert-dismissible fade show" role="alert">-->
+<!--        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>-->
+<!--        <strong>调试信息：</strong>-->
+<!--        当前时间戳：<code>{{ timestamp }}</code> |-->
+<!--        图片路径：<code id="debug-path">{% static 'img/10.png' %}</code>-->
+<!--        <button class="btn btn-sm btn-secondary ms-2" onclick="copyPath()">复制路径</button>-->
+<!--        <span class="ms-2">|</span>-->
+<!--        <a href="{% static 'img/10.png' %}" target="_blank" class="alert-link">直接打开图片</a>-->
+<!--        <span class="ms-2">|</span>-->
+<!--        <a href="/dashboard/?t={{ timestamp }}" class="alert-link">强制刷新页面</a>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; 新增：插入图片区域 &ndash;&gt;-->
+<!--    <div class="row mt-4">-->
+<!--        <div class="col-md-12">-->
+<!--            <div class="card">-->
+<!--                <div class="card-header d-flex justify-content-between align-items-center">-->
+<!--                    <h5 class="card-title mb-0">房价趋势可视化</h5>-->
+<!--                    <small class="text-muted">版本：{{ timestamp|default:"1.0" }}</small>-->
+<!--                </div>-->
+<!--                <div class="card-body text-center">-->
+
+<!--                    &lt;!&ndash; 方法1：主要显示图片（带时间戳避免缓存） &ndash;&gt;-->
+<!--                    <div class="mb-4">-->
+<!--                        <h6>方法1：使用static标签</h6>-->
+<!--                        <img src="{% static 'img/10.png' %}?v={{ timestamp|default:'1.0' }}"-->
+<!--                             alt="房价趋势图表"-->
+<!--                             class="img-fluid rounded border border-3"-->
+<!--                             style="max-height: 400px;"-->
+<!--                             id="main-image"-->
+<!--                             onload="onImageLoad(this)"-->
+<!--                             onerror="onImageError(this)">-->
+<!--                        <p class="text-muted mt-2">静态标签引用 | 路径: {% static 'img/10.png' %}?v={{ timestamp }}</p>-->
+<!--                    </div>-->
+
+<!--                    <hr>-->
+
+<!--                    &lt;!&ndash; 方法2：备用方案，直接路径 &ndash;&gt;-->
+<!--                    <div class="mt-4">-->
+<!--                        <h6>方法2：直接路径（备用）</h6>-->
+<!--                        <img src="/static/img/10.png?v={{ timestamp|default:'1.0' }}"-->
+<!--                             alt="房价趋势图表-备用"-->
+<!--                             class="img-fluid rounded border border-success"-->
+<!--                             style="max-height: 200px;"-->
+<!--                             onload="onImageLoad(this)"-->
+<!--                             onerror="onImageError(this)">-->
+<!--                        <p class="text-muted mt-2">直接URL引用 | 路径: /static/img/10.png?v={{ timestamp }}</p>-->
+<!--                    </div>-->
+
+<!--                </div>-->
+<!--                <div class="card-footer text-muted small">-->
+<!--                    <div class="row">-->
+<!--                        <div class="col">-->
+<!--                            图片状态：<span id="image-status">加载中...</span>-->
+<!--                        </div>-->
+<!--                        <div class="col text-end">-->
+<!--                            今日新增：{{ today_count }} | 最后更新：{{ last_update|date:"Y-m-d H:i" }}-->
+<!--                            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="reloadImage()">-->
+<!--                                🔄 重新加载图片-->
+<!--                            </button>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+  <!-- 【替换开始】原来的图片区域换成图表区域 -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">🏠 全国8大城市房产市场交互式大屏</h5>
+                <small class="text-muted">实时数据 | 支持交互分析</small>
+            </div>
+            <div class="card-body p-0" style="height: 700px;">
+                <!-- 核心：嵌入你的可视化图表 -->
+                <iframe
+                    src="/static/charts/房产数据大屏.html"
+                    style="width:100%; height:100%; border:none;"
+                    title="房产数据可视化大屏"
+                    frameborder="0">
+                </iframe>
+            </div>
+            <div class="card-footer text-muted small">
+                <div class="row">
+                    <div class="col">
+                        图表状态：<span class="text-success">✅ 已加载</span> |
+                        交互功能：悬停查看详情、缩放、筛选
+                    </div>
+                    <div class="col text-end">
+                        今日新增：{{ today_count }} | 最后更新：{{ last_update|date:"Y-m-d H:i" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 【替换结束】 -->
+    <!-- 【重要】你原有的三个统计卡片 -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">总房源数</h5>
+                    <p class="card-text display-4">{{ total_houses|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">区域数量</h5>
+                    <p class="card-text display-4">{{ district_count|default:"0" }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">平均单价</h5>
+                    <p class="card-text display-4">{{ avg_price|default:"0.00" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 技术信息面板（调试用） -->
+    <div class="card mt-4 border-secondary">
+        <div class="card-header bg-light">
+            <h6 class="mb-0">技术信息</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>静态文件路径解析：</strong></p>
+                    <code>{% static 'img/10.png' %}</code> →
+                    <code id="resolved-path">正在解析...</code>
+                    <p class="mt-2"><strong>页面接收到的数据：</strong></p>
+                    <ul>
+                        <li>total_houses: {{ total_houses }}</li>
+                        <li>district_count: {{ district_count }}</li>
+                        <li>avg_price: {{ avg_price }}</li>
+                        <li>timestamp: {{ timestamp }}</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>调试操作：</strong></p>
+                    <button class="btn btn-sm btn-info me-2 mb-2" onclick="checkImage()">检查图片状态</button>
+                    <button class="btn btn-sm btn-warning me-2 mb-2" onclick="clearCache()">清除缓存并刷新</button>
+                    <button class="btn btn-sm btn-danger mb-2" onclick="hardRefresh()">强制完全刷新</button>
+                    <p class="mt-3"><strong>直接链接测试：</strong></p>
+                    <p><a href="/static/img/10.png" target="_blank">1. 直接打开图片</a></p>
+                    <p><a href="/static/img/10.png?v={{ timestamp }}" target="_blank">2. 带时间戳打开</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 简单JavaScript用于调试 -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 显示解析后的路径
+    const imgElement = document.getElementById('main-image');
+    if(imgElement) {
+        document.getElementById('resolved-path').textContent = imgElement.src;
+    }
+
+    // 检查图片加载状态
+    setTimeout(checkImage, 1000);
+
+    console.log('页面加载完成，时间戳:', {{ timestamp }});
+});
+
+function onImageLoad(imgElement) {
+    console.log('图片加载成功:', imgElement.src);
+    checkImage();
+}
+
+function onImageError(imgElement) {
+    console.error('图片加载失败:', imgElement.src);
+    document.getElementById('image-status').innerHTML =
+        '<span class="text-danger">❌ 图片加载出错，检查控制台</span>';
+}
+
+function checkImage() {
+    const img = document.getElementById('main-image');
+    const statusEl = document.getElementById('image-status');
+
+    if(img && img.complete) {
+        if(img.naturalHeight !== 0) {
+            statusEl.innerHTML = '<span class="text-success">✅ 加载成功</span>';
+            statusEl.innerHTML += ` (尺寸: ${img.naturalWidth}×${img.naturalHeight})`;
+        } else {
+            statusEl.innerHTML = '<span class="text-danger">❌ 加载失败 - 图片高度为0</span>';
+        }
+    } else {
+        statusEl.innerHTML = '<span class="text-warning">⏳ 仍在加载...</span>';
+    }
+}
+
+function reloadImage() {
+    const img = document.getElementById('main-image');
+    const newSrc = img.src.split('?')[0] + '?v=' + new Date().getTime();
+    img.src = newSrc;
+    document.getElementById('image-status').innerHTML = '<span class="text-warning">🔄 重新加载中...</span>';
+
+    console.log('重新加载图片:', newSrc);
+}
+
+function copyPath() {
+    const path = document.getElementById('debug-path').textContent;
+    navigator.clipboard.writeText(path).then(() => {
+        alert('路径已复制到剪贴板: ' + path);
+    });
+}
+
+function clearCache() {
+    // 强制刷新页面，绕过缓存
+    window.location.href = window.location.pathname + '?t=' + new Date().getTime();
+}
+
+function hardRefresh() {
+    // 强制完全刷新（等效于Ctrl+Shift+R）
+    if (window.location.search) {
+        window.location.href = window.location.pathname + window.location.search + '&hard=' + new Date().getTime();
+    } else {
+        window.location.href = window.location.pathname + '?hard=' + new Date().getTime();
+    }
+}
+</script>
+
+<style>
+#main-image {
+    transition: opacity 0.3s;
+    background-color: #f8f9fa; /* 添加背景色，方便查看图片区域 */
+}
+#main-image:hover {
+    opacity: 0.9;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

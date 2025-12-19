@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI智能分析 - 房地产数据分析系统</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* 浅蓝色主题 */
+        :root {
+            --ai-primary: #3498db;
+            --ai-secondary: #2980b9;
+            --ai-light: #e8f4fc;
+            --ai-lighter: #f8fbff;
+            --ai-border: #d4eaf7;
+            --ai-gradient: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        body {
+            background-color: var(--ai-lighter);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        .ai-header {
+            background: var(--ai-gradient);
+            color: white;
+            padding: 60px 0;
+            margin-bottom: 40px;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .ai-stat-card {
+            background: white;
+            border-radius: 15px;
+            border: 1px solid var(--ai-border);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .ai-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(52, 152, 219, 0.15);
+        }
+
+        .ai-stat-number {
+            font-size: 2.8rem;
+            font-weight: bold;
+            background: var(--ai-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .ai-qa-section {
+            background: white;
+            border-radius: 15px;
+            border: 1px solid var(--ai-border);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.1);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .ai-qa-header {
+            background: linear-gradient(135deg, var(--ai-light), white);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--ai-border);
+        }
+
+        .ai-qa-body {
+            padding: 30px;
+        }
+
+        .ai-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .ai-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid var(--ai-border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--ai-primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .ai-btn {
+            background: var(--ai-gradient);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+            color: white;
+        }
+
+        .ai-answer-box {
+            background: linear-gradient(135deg, #f8fbff, #e8f4fc);
+            border-left: 4px solid var(--ai-primary);
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 25px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ai-robot-icon {
+            background: var(--ai-gradient);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .ai-tag {
+            background: var(--ai-light);
+            color: var(--ai-primary);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .ai-tag:hover {
+            background: var(--ai-primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .ai-loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--ai-border);
+            border-top: 3px solid var(--ai-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ai-examples {
+            background: var(--ai-lighter);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <div class="ai-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">
+                        <i class="fas fa-robot me-3"></i>AI房产智能分析
+                    </h1>
+                    <p class="lead mb-4">基于 {{ total_houses }}+ 条实时房源数据，为您提供专业的房产分析和投资建议</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="ai-stat-card">
+                        <div class="ai-stat-number">{{ total_houses }}+</div>
+                        <p class="text-muted mb-0">实时房源数据</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主要内容 -->
+    <div class="container pb-5">
+        <div class="row">
+            <!-- 左侧统计数据 -->
+            <div class="col-lg-4">
+                <div class="ai-stat-card">
+                    <div class="ai-robot-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">📊 市场数据分析</h4>
+                    <div class="mb-4">
+                        <p class="text-muted mb-1">平均单价</p>
+                        <h3 class="ai-stat-number">{{ avg_price }}<small class="fs-6 text-muted">元/㎡</small></h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <p class="text-muted mb-1">最贵区域</p>
+                            <h5 class="fw-bold text-primary">{{ expensive_district }}</h5>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <p class="text-muted mb-1">最便宜区域</p>
+                            <h5 class="fw-bold text-success">{{ cheap_district }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-stat-card">
+                    <div class="ai-robot-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">💡 投资建议</h4>
+                    <div class="mb-3">
+                        <p class="text-muted mb-1">推荐投资区域</p>
+                        <h5 class="fw-bold">{{ recommend_district }}</h5>
+                        <small class="text-muted">配套成熟，增长潜力大</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <p class="text-muted mb-1">预期回报率</p>
+                            <h5 class="fw-bold text-success">{{ return_rate }}%</h5>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <p class="text-muted mb-1">最佳投资时间</p>
+                            <h5 class="fw-bold">{{ best_time }}</h5>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ai-stat-card">
+                    <div class="ai-robot-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">💬 如何提问？</h4>
+                    <p class="text-muted">你可以咨询：</p>
+                    <div>
+                        <span class="ai-tag" onclick="setQuestion('朝阳区房价怎么样？')">区域房价</span>
+                        <span class="ai-tag" onclick="setQuestion('哪里适合投资？')">投资推荐</span>
+                        <span class="ai-tag" onclick="setQuestion('学区房值得买吗？')">学区房</span>
+                        <span class="ai-tag" onclick="setQuestion('交通便利的区域')">交通配套</span>
+                        <span class="ai-tag" onclick="setQuestion('未来房价趋势如何？')">市场趋势</span>
+                        <span class="ai-tag" onclick="setQuestion('租金回报率高的区域')">租金回报</span>
+                        <span class="ai-tag" onclick="setQuestion('小户型投资建议')">户型分析</span>
+                        <span class="ai-tag" onclick="setQuestion('商业配套的重要性')">配套分析</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧AI问答 -->
+            <div class="col-lg-8">
+                <div class="ai-qa-section">
+                    <div class="ai-qa-header">
+                        <h4 class="fw-bold mb-0">
+                            <i class="fas fa-comments me-2"></i>AI智能问答助手
+                        </h4>
+                        <small class="text-muted">基于DeepSeek大模型分析 {{ total_houses }}+ 条房源数据</small>
+                    </div>
+
+                    <div class="ai-qa-body">
+                        <!-- 问题输入表单 -->
+                        <form method="post" id="ai-question-form">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">💭 有什么房产问题想问AI？</label>
+                                <div class="ai-input-group">
+                                    <input type="text"
+                                           name="question"
+                                           class="ai-input"
+                                           placeholder="例如：朝阳区房价怎么样？万达广场周边交通便利吗？未来投资哪里的房产比较好？"
+                                           required
+                                           id="question-input">
+                                    <button type="submit" class="ai-btn" id="submit-btn">
+                                        <i class="fas fa-paper-plane"></i> 提问
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- 示例问题 -->
+                        <div class="ai-examples">
+                            <p class="text-muted mb-2"><small>试试这些热门问题：</small></p>
+                            <div class="d-flex flex-wrap">
+                                <button class="ai-tag" onclick="setQuestion('朝阳区未来房价走势如何？')">
+                                    朝阳区房价走势
+                                </button>
+                                <button class="ai-tag" onclick="setQuestion('投资学区房需要注意什么？')">
+                                    学区房投资
+                                </button>
+                                <button class="ai-tag" onclick="setQuestion('北京哪个区域最具升值潜力？')">
+                                    升值潜力区域
+                                </button>
+                                <button class="ai-tag" onclick="setQuestion('小户型适合投资吗？')">
+                                    小户型投资
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- AI回答显示区域 -->
+                        {% if answer %}
+                        <div class="ai-answer-box">
+                            <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="ai-robot-icon" style="width: 50px; height: 50px;">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="text-primary fw-bold mb-2">🤖 AI专业分析</h5>
+                                    <div class="mb-3">
+                                        {{ answer|linebreaks }}
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-database me-1"></i>基于 {{ total_houses }}+ 条实时数据
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>实时分析
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- 初始状态 -->
+                        <div class="ai-answer-box text-center">
+                            <div class="ai-robot-icon" style="margin: 0 auto 15px;">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <h5 class="text-primary mb-3">欢迎使用AI房产助手</h5>
+                            <p class="text-muted mb-0">
+                                我是基于DeepSeek大模型的专业房产分析助手，可以为您提供：
+                                <br>房价分析、投资建议、区域对比、趋势预测等专业服务。
+                                <br>请在左侧输入您的问题，或点击上方的示例问题开始咨询。
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 使用提示 -->
+                <div class="ai-stat-card mt-4">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-info-circle me-2"></i>使用提示</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>问题越具体，回答越精准</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>可咨询房价、投资、政策等</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>基于实时数据，结果可靠</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>投资建议仅供参考</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 返回首页按钮 -->
+        <div class="text-center mt-5">
+            <a href="/" class="ai-btn" style="background: #6c757d; padding: 12px 40px;">
+                <i class="fas fa-home me-2"></i> 返回首页
+            </a>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // 1. 点击示例问题自动填充
+        function setQuestion(question) {
+            const input = document.getElementById('question-input');
+            input.value = question;
+            input.focus();
+            // 滚动到输入框位置
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // 2. 表单提交动画和验证
+        document.getElementById('ai-question-form').addEventListener('submit', function(e) {
+            const btn = document.getElementById('submit-btn');
+            const input = document.getElementById('question-input').value.trim();
+
+            if (!input) {
+                e.preventDefault();
+                alert('请输入您的问题');
+                return;
+            }
+
+            // 显示加载状态
+            btn.innerHTML = '<span class="ai-loader me-2"></span> AI思考中...';
+            btn.disabled = true;
+
+            // 防止重复提交
+            setTimeout(() => {
+                btn.disabled = false;
+            }, 3000);
+        });
+
+        // 3. 页面加载后自动聚焦到输入框
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const questionInput = document.getElementById('question-input');
+            if (questionInput && !questionInput.value) {
+                setTimeout(() => {
+                    questionInput.focus();
+                }, 500);
+            }
+        });
+
+        // 4. 如果有答案，平滑滚动到答案区域
+        {% if answer %}
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const answerBox = document.querySelector('.ai-answer-box');
+                if (answerBox) {
+                    answerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        });
+        {% endif %}
+    </script>
+</body>
+</html>

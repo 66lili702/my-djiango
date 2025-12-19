@@ -1,0 +1,195 @@
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.db.models import Avg, Count, Sum, Min, Max
+from django.utils import timezone
+from datetime import timedelta
+from .models import LianJiaHouse
+
+
+def index(request):
+    """首页"""
+    # 统计信息
+    total_houses = LianJiaHouse.objects.count()
+    district_count = LianJiaHouse.objects.values('district').distinct().count()
+
+    # 平均价格
+    try:
+        avg_price_result = LianJiaHouse.objects.aggregate(avg_price=Avg('unit_price'))
+        avg_price = avg_price_result['avg_price']
+    except:
+        avg_price = 0
+
+    # 获取最新6条房源数据 - 使用 crawl_time 而不是 created_at
+    recent_houses = LianJiaHouse.objects.all().order_by('-crawl_time')[:6]
+
+    context = {
+        'total_houses': total_houses,
+        'district_count': district_count,
+        'avg_price': round(avg_price, 2) if avg_price else 0,
+        'recent_houses': recent_houses,
+    }
+
+    return render(request, 'main_app/index.html', context)
+
+
+def house_list(request):
+    """房屋列表页"""
+    # 获取所有房屋数据 - 使用 crawl_time 而不是 created_at
+    houses = LianJiaHouse.objects.all().order_by('-crawl_time')
+
+    # 搜索过滤
+    search_query = request.GET.get('search', '')
+    district_filter = request.GET.get('district', '')
+    layout_filter = request.GET.get('layout', '')
+
+    if search_query:
+        houses = houses.filter(title__icontains=search_query)
+    if district_filter:
+        houses = houses.filter(district=district_filter)
+    if layout_filter:
+        houses = houses.filter(layout__icontains=layout_filter)
+
+    # 获取唯一值用于筛选选项
+    districts = LianJiaHouse.objects.values_list('district', flat=True).distinct()
+    layouts = LianJiaHouse.objects.values_list('layout', flat=True).distinct()
+
+    # 分页
+    paginator = Paginator(houses, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'houses': page_obj,
+        'districts': districts,
+        'layouts': layouts,
+        'search_query': search_query,
+        'district_filter': district_filter,
+        'layout_filter': layout_filter,
+    }
+
+    return render(request, 'main_app/house_list.html', context)
+
+
+def dashboard(request):
+    """数据大屏"""
+    # 基础统计
+    total_houses = LianJiaHouse.objects.count()
+    district_count = LianJiaHouse.objects.values('district').distinct().count()
+
+    # 平均价格
+    try:
+        avg_price_result = LianJiaHouse.objects.aggregate(avg_price=Avg('unit_price'))
+        avg_price = avg_price_result['avg_price']
+    except:
+        avg_price = 0
+
+    # 今日新增 - 使用 crawl_time 而不是 created_at
+    today = timezone.now().date()
+    today_count = LianJiaHouse.objects.filter(crawl_time__date=today).count()
+
+    # 最后更新时间 - 使用 crawl_time 而不是 created_at
+    last_update = LianJiaHouse.objects.order_by('-crawl_time').first()
+
+    context = {
+        'total_houses': total_houses,
+        'district_count': district_count,
+        'avg_price': round(avg_price, 2) if avg_price else 0,
+        'today_count': today_count,
+        'last_update': last_update.crawl_time if last_update else timezone.now(),
+    }
+
+    return render(request, 'main_app/dashboard.html', context)
+
+
+def professional_dashboard(request):
+    """专业版数据大屏"""
+    # 基础统计
+    total_houses = LianJiaHouse.objects.count()
+    district_count = LianJiaHouse.objects.values('district').distinct().count()
+
+    # 价格统计
+    try:
+        price_stats = LianJiaHouse.objects.aggregate(
+            avg_price=Avg('unit_price'),
+            max_price=Max('unit_price'),
+            min_price=Min('unit_price'),
+            avg_total=Avg('total_price'),
+            total_value=Sum('total_price')
+        )
+        avg_price = price_stats['avg_price']
+        max_price = price_stats['max_price']
+        min_price = price_stats['min_price']
+        avg_total = price_stats['avg_total']
+    except:
+        avg_price = max_price = min_price = avg_total = 0
+
+    # 区域统计
+    district_stats = LianJiaHouse.objects.values('district').annotate(
+        count=Count('id'),
+        avg_price=Avg('unit_price'),
+        avg_total=Avg('total_price')
+    ).order_by('-count')
+
+    # 户型统计
+    layout_stats = LianJiaHouse.objects.values('layout').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
+
+    # 价格区间统计
+    price_ranges = [
+        (0, 200), (200, 400), (400, 600),
+        (600, 800), (800, 1000), (1000, 10000)
+    ]
+    price_distribution = []
+    for min_price, max_price in price_ranges:
+        count = LianJiaHouse.objects.filter(
+            total_price__gte=min_price,
+            total_price__lt=max_price
+        ).count()
+        price_distribution.append({
+            'range': f'{min_price}-{max_price}万',
+            'count': count
+        })
+
+    # 面积区间统计
+    area_ranges = [
+        (0, 50), (50, 70), (70, 90),
+        (90, 120), (120, 150), (150, 1000)
+    ]
+    area_distribution = []
+    for min_area, max_area in area_ranges:
+        count = LianJiaHouse.objects.filter(
+            area__gte=min_area,
+            area__lt=max_area
+        ).count()
+        area_distribution.append({
+            'range': f'{min_area}-{max_area}㎡',
+            'count': count
+        })
+
+    # 今日新增
+    today = timezone.now().date()
+    today_count = LianJiaHouse.objects.filter(crawl_time__date=today).count()
+
+    # 最后更新时间
+    last_update = LianJiaHouse.objects.order_by('-crawl_time').first()
+
+    context = {
+        # 基础数据
+        'total_houses': total_houses,
+        'district_count': district_count,
+        'avg_price': round(avg_price, 2) if avg_price else 0,
+        'max_price': round(max_price, 2) if max_price else 0,
+        'min_price': round(min_price, 2) if min_price else 0,
+        'avg_total': round(avg_total, 2) if avg_total else 0,
+        'today_count': today_count,
+        'last_update': last_update.crawl_time if last_update else timezone.now(),
+
+        # 图表数据
+        'district_stats': list(district_stats),
+        'layout_stats': list(layout_stats),
+        'price_distribution': price_distribution,
+        'area_distribution': area_distribution,
+    }
+
+    return render(request, 'main_app/professional_dashboard.html', context)
